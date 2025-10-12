@@ -1,0 +1,40 @@
+{
+  "name": "ai-page-assistant-tests",
+  "version": "1.0.0",
+  "description": "Command-line test suite for AI Page Assistant Chrome Extension",
+  "main": "test-runner.js",
+  "scripts": {
+    "test": "node test-runner.js",
+    "test:unit": "node node-unit-tests.js",
+    "test:integration": "node integration-tests.js",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test",
+    "test:watch": "nodemon test-runner.js",
+    "test:coverage": "nyc npm test",
+    "lint": "eslint *.js",
+    "lint:fix": "eslint *.js --fix",
+    "manual": "echo 'Open extension-test-page.html in Chrome with extension loaded for manual testing'"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "nyc": "^15.1.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "puppeteer": "^21.0.0"
+  },
+  "keywords": [
+    "chrome-extension",
+    "testing",
+    "ai",
+    "automation"
+  ],
+  "author": "AI Page Assistant Team",
+  "license": "MIT",
+  "testEnvironment": "node",
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageReporters": ["text", "lcov", "html"],
+    "testMatch": ["**/test/**/*.test.js"]
+  }
+}
