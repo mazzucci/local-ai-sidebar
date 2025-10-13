@@ -197,6 +197,32 @@ Modify `sidebar.css` to customize the appearance:
 - Verify all files are present and properly formatted
 - Test with a simple webpage first
 
+## ⚠️ Disclaimer
+
+**IMPORTANT LEGAL NOTICE**
+
+This software is provided "as is" without warranty of any kind. Local AI models are experimental technology and may not always provide accurate, reliable, or appropriate responses. Users are responsible for:
+
+- **Verifying AI responses** before relying on them for important decisions
+- **Testing thoroughly** before using in production or critical environments  
+- **Understanding limitations** of local AI processing and hardware requirements
+- **Using appropriate judgment** when interpreting AI-generated content
+- **Ensuring compliance** with applicable laws and regulations in their jurisdiction
+
+**Performance and Reliability:**
+- AI response quality may vary based on hardware capabilities
+- Local processing may be slower than cloud-based alternatives
+- Experimental features may behave unexpectedly
+- Users should not rely solely on AI responses for critical tasks
+
+**Privacy Considerations:**
+- While this extension processes data locally, users should still exercise caution with sensitive information
+- Consider using a separate Chrome profile for maximum privacy isolation
+- Review and understand the extension's permissions before installation
+
+**No Liability:**
+The authors and contributors are not responsible for any damages, losses, or issues arising from the use of this software. Users assume all risks associated with using this experimental technology.
+
 ## 📝 License
 
 This project is open source and available under the MIT License.
@@ -211,6 +237,28 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 - AI powered by Chrome's built-in Prompt API
 - Icons and UI inspired by modern design principles
 - Splash screen design inspired by modern web applications
+
+## 📸 Screenshots
+
+### Main Chat Interface
+![Main Chat Interface](screenshots/chrome-store/01-main-chat-interface.jpg)
+*Clean, modern chat interface with local AI processing*
+
+### Text Selection Feature
+![Text Selection Feature](screenshots/chrome-store/02-text-selection-feature.jpg)
+*Select text on any webpage and ask questions about it*
+
+### Custom Prompts Library
+![Custom Prompts Library](screenshots/chrome-store/03-custom-prompts-library-add-prompt.jpg)
+*Create and manage your own AI prompts for specific tasks*
+
+### Quick Access Prompts
+![Quick Access Prompts](screenshots/chrome-store/04-custom-prompts-quick-access.jpg)
+*One-click access to your saved custom prompts*
+
+### Settings Interface
+![Settings Interface](screenshots/chrome-store/05-settings-interface.jpg)
+*Configure AI creativity level and manage local model*
 
 ---
 

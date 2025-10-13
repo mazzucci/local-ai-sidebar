@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Local AI Sidebar",
   "version": "1.0.0",
-  "description": "A privacy-first AI sidebar that processes everything locally in your browser. No internet, no accounts, no data sharing. Ask questions, get summaries, and analyze content using Chrome's built-in AI.",
+  "description": "Privacy-first AI sidebar using Chrome's built-in AI. Process content locally with no data sharing.",
   "permissions": [
     "sidePanel",
     "activeTab",
