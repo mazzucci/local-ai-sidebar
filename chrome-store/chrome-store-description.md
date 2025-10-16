@@ -62,16 +62,10 @@ Stop compromising between AI assistance and privacy. Local AI Sidebar gives you 
 ## Screenshots
 
 ### Main Chat Interface
-Clean, modern chat interface with local AI processing
-
-### Manual Paste Analysis
-Copy text from any webpage and paste it into the chat for analysis
+Clean, modern chat interface with local AI processing and privacy-first design
 
 ### Custom Prompts Library
-Create and manage your own AI prompts for specific tasks
-
-### Quick Access Prompts
-One-click access to your saved custom prompts
+Create, save, and manage your own AI prompts for personalized workflows
 
 ### Settings Interface
-Configure AI creativity level and manage local model
+Configure AI creativity level and manage local model settings
