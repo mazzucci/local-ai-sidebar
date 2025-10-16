@@ -1,0 +1,18 @@
+<!-- Model Parameters Display Template -->
+<template id="model-params-template">
+    <div class="model-params-grid">
+        <div class="param-item">
+            <strong>Temperature:</strong>
+            <span>Default: {{defaultTemperature}}</span>
+            <span>Max: {{maxTemperature}}</span>
+        </div>
+        <div class="param-item">
+            <strong>Top-K:</strong>
+            <span>Default: {{defaultTopK}}</span>
+            <span>Max: {{maxTopK}}</span>
+        </div>
+    </div>
+    <small style="color: #6c757d; margin-top: 8px; display: block;">
+        These are the supported parameter ranges for the Gemini Nano model.
+    </small>
+</template>

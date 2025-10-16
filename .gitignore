@@ -5,8 +5,17 @@ dist-clean/
 # Generated archives
 *.zip
 
+# Node.js
+node_modules/
+package-lock.json
+
+# TypeScript
+*.tsbuildinfo
+
 # Temporary files
 thumbnail-generator.html
+test-download-flow.html
+test-splash-screen.html
 
 # OS generated files
 .DS_Store

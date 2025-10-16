@@ -1,0 +1,19 @@
+{
+  "name": "local-ai-sidebar",
+  "version": "1.0.1",
+  "description": "Privacy-first AI sidebar using Chrome's built-in AI",
+  "scripts": {
+    "build": "esbuild src/LocalAI.ts --bundle --outfile=dist/LocalAI.js --format=iife --global-name=LocalAIApp && npm run copy-assets",
+    "copy-assets": "cp src/*.html dist/ && cp src/*.css dist/ && cp -r src/icons dist/ && cp src/service-worker.js dist/ && cp src/manifest.json dist/",
+    "dev": "esbuild src/LocalAI.ts --bundle --outfile=dist/LocalAI.js --format=iife --global-name=LocalAIApp --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/chrome": "^0.0.251",
+    "esbuild": "^0.19.0"
+  },
+  "keywords": ["chrome-extension", "ai", "privacy", "local"],
+  "author": "Local AI Sidebar",
+  "license": "MIT"
+}

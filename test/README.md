@@ -1,12 +1,12 @@
 # 🧪 Local AI Sidebar Test Suite
 
-Reliable command-line testing suite for the Local AI Sidebar Chrome Extension.
+Reliable command-line testing suite for the Local AI Sidebar Chrome Extension with TypeScript implementation.
 
 ## 📋 Overview
 
-This streamlined test suite focuses on reliable automated testing:
+This streamlined test suite focuses on reliable automated testing for the TypeScript implementation:
 
-- **Unit Tests** - Test individual functions and components
+- **Unit Tests** - Test individual TypeScript modules and functions
 - **Integration Tests** - Test component interactions and Chrome APIs
 - **End-to-End Tests** - Test complete user workflows
 - **Manual Testing** - Interactive test page for hands-on verification
@@ -17,7 +17,8 @@ This streamlined test suite focuses on reliable automated testing:
 
 - Node.js 16+ 
 - Chrome browser
-- AI Page Assistant extension loaded
+- Local AI Sidebar extension loaded
+- TypeScript support
 
 ### Installation
 
@@ -36,6 +37,9 @@ npm test
 npm run test:unit
 npm run test:integration
 
+# Run with TypeScript compilation
+npm run test:typescript
+
 # Run with coverage
 npm run test:coverage
 
@@ -51,54 +55,56 @@ npm run manual
 ```
 test/
 ├── test-runner.js           # Main test runner
-├── unit-tests.js            # Unit tests
+├── unit-tests.js            # Unit tests for TypeScript modules
 ├── integration-tests.js     # Integration tests
 ├── extension-test-page.html # Manual testing page
-├── package.json             # Test dependencies
+├── package.json             # Test dependencies with TypeScript support
 └── README.md               # This file
 ```
 
 ## 🧪 Test Categories
 
-### 1. Extension Setup Tests
+### 1. TypeScript Module Tests
+- ✅ PromptManager validation and CRUD operations
+- ✅ SettingsManager temperature and model status validation
+- ✅ UIManager tab switching and message formatting
+- ✅ TemplateManager variable replacement and rendering
+- ✅ ChatManager message structure and validation
+
+### 2. Extension Setup Tests
 - ✅ Manifest file validation
 - ✅ Required files existence
 - ✅ Chrome APIs availability
+- ✅ LanguageModel API integration
 - ✅ Sidebar iframe loading
 
-### 2. Text Selection Tests
-- ✅ Text selection API functionality
-- ✅ Selection creation and clearing
-- ✅ Cross-frame selection handling
-- ✅ Selected text extraction
+### 3. Prompt Library Tests
+- ✅ Prompt storage and retrieval
+- ✅ Prompt CRUD operations (Create, Read, Update, Delete)
+- ✅ Prompt validation with title and content
+- ✅ Default prompts validation
+- ✅ Modal form integration
 
-### 3. Chat & AI Tests
+### 4. Settings & Storage Tests
+- ✅ Settings persistence
+- ✅ Temperature validation (0-2 range)
+- ✅ Model status integration
+- ✅ Model parameters structure
+- ✅ Tab change detection
+
+### 5. Chat & AI Tests
 - ✅ Chat input functionality
 - ✅ Send button behavior
-- ✅ Message display
-- ✅ Selected text integration
+- ✅ Message display and formatting
 - ✅ AI response handling
+- ✅ Thinking indicator
 
-### 4. Prompt Library Tests
-- ✅ Prompt storage and retrieval
-- ✅ Prompt title generation
-- ✅ Prompt CRUD operations
-- ✅ Default prompts validation
-- ✅ Multi-line prompt support
-
-### 5. Splash Screen Tests
-- ✅ Loading screen display
-- ✅ Status message updates
-- ✅ Model availability checking
-- ✅ Smooth transitions
-- ✅ Error handling
-
-### 6. Settings & Storage Tests
-- ✅ Settings persistence
-- ✅ Temperature validation
-- ✅ Tab change detection
-- ✅ Content script injection
-- ✅ Cross-session data retention
+### 6. Modal Integration Tests
+- ✅ Modal show/hide functionality
+- ✅ Form validation
+- ✅ Event handling
+- ✅ Data binding
+- ✅ Add/Edit prompt workflows
 
 ## 🎯 Manual Testing
 
@@ -113,7 +119,6 @@ For hands-on testing of the extension features:
 The test page includes:
 - **Text selection examples** for testing AI features
 - **Sample content** for summarization and analysis
-- **Links and elements** for page manipulation testing
 - **Interactive elements** for comprehensive testing
 
 ## 🔧 Configuration
@@ -138,11 +143,19 @@ The test page includes:
    python3 -m http.server 8000
    ```
 
-### Test Configuration
+### TypeScript Configuration
 
 ```javascript
 // test-config.js
 const config = {
+  // TypeScript compilation
+  typescript: {
+    target: 'ES2020',
+    module: 'ESNext',
+    moduleResolution: 'node',
+    strict: true
+  },
+  
   // Test URLs
   testUrls: [
     'http://localhost:8000/test-page.html',
@@ -158,9 +171,18 @@ const config = {
   
   // Test data
   testData: {
-    selectedText: 'Test selection',
-    pageContent: 'Test page content',
-    prompts: [...]
+    prompts: [
+      { id: 'explain-text', title: 'Explain Text', content: 'Explain the following text in simple terms:' },
+      { id: 'summarize', title: 'Summarize', content: 'Provide a concise summary of the following content:' },
+      { id: 'fix-grammar', title: 'Fix Grammar', content: 'Fix any grammar and spelling errors in the following text:' }
+    ],
+    settings: { temperature: 0.7, topK: 40 },
+    modelParams: {
+      defaultTemperature: 0.7,
+      maxTemperature: 2.0,
+      defaultTopK: 40,
+      maxTopK: 100
+    }
   }
 };
 ```
@@ -169,30 +191,36 @@ const config = {
 
 ### HTML Report
 - **Visual Dashboard** - Color-coded test results
+- **TypeScript Badge** - Indicates TypeScript implementation
 - **Detailed Breakdown** - Per-category test results
 - **Performance Metrics** - Test execution times
 - **Error Analysis** - Failed test details
 
 ### Console Output
 ```bash
-🧪 Starting AI Page Assistant Test Suite...
+🧪 Starting Local AI Sidebar Test Suite...
 
 📝 Running Unit Tests...
-  ✅ Prompt validation
-  ✅ Variable replacement
-  ✅ Settings validation
-  Unit Tests: 5 passed, 0 failed
+  ✅ PromptManager validation
+  ✅ SettingsManager validation
+  ✅ UIManager functionality
+  ✅ TemplateManager rendering
+  ✅ ChatManager message handling
+  Unit Tests: 8 passed, 0 failed
 
 🔗 Running Integration Tests...
-  ✅ Extension loading
-  ✅ Sidebar functionality
-  ✅ Content script injection
-  Integration Tests: 6 passed, 0 failed
+  ✅ Extension loading with TypeScript
+  ✅ Sidebar functionality integration
+  ✅ Prompt library CRUD operations
+  ✅ Settings persistence integration
+  ✅ Chat integration with AI
+  ✅ Modal integration
+  Integration Tests: 9 passed, 0 failed
 
 📊 Test Report
 ==================================================
-Total Tests: 16
-Passed: 16
+Total Tests: 25
+Passed: 25
 Failed: 0
 Duration: 1250ms
 Success Rate: 100.0%
@@ -204,16 +232,16 @@ Success Rate: 100.0%
 
 ### Common Issues
 
-1. **Extension Not Loaded**:
+1. **TypeScript Compilation Errors**:
    ```bash
-   # Check if extension is loaded
-   chrome://extensions/ → Verify AI Page Assistant is enabled
+   # Check TypeScript compilation
+   npm run build
    ```
 
-2. **Content Script Injection Failed**:
+2. **Extension Not Loaded**:
    ```bash
-   # Check console for errors
-   F12 → Console → Look for injection errors
+   # Check if extension is loaded
+   chrome://extensions/ → Verify Local AI Sidebar is enabled
    ```
 
 3. **Chrome APIs Not Available**:
@@ -229,7 +257,7 @@ Success Rate: 100.0%
 DEBUG=true npm test
 
 # Run specific test with verbose output
-npm test -- --verbose --testNamePattern="Text Selection"
+npm test -- --verbose --testNamePattern="PromptManager"
 ```
 
 ## 🔄 Continuous Integration
@@ -249,7 +277,7 @@ jobs:
         with:
           node-version: '16'
       - run: cd test && npm install
-      - run: cd test && npm test
+      - run: cd test && npm run test:typescript
 ```
 
 ### Pre-commit Hooks
@@ -286,7 +314,7 @@ open coverage/lcov-report/index.html
 4. **Clean Up** - Always clean up test data and DOM modifications
 
 ### Test Organization
-1. **Group Related Tests** - Organize tests by feature or component
+1. **Group Related Tests** - Organize tests by TypeScript module or component
 2. **Use Setup/Teardown** - Common test setup and cleanup
 3. **Mock External Dependencies** - Isolate units under test
 4. **Test Edge Cases** - Include boundary conditions and error cases
@@ -300,7 +328,7 @@ open coverage/lcov-report/index.html
 4. **Update Documentation** - Document new test coverage
 
 ### Test Maintenance
-1. **Keep Tests Updated** - Update tests when features change
+1. **Keep Tests Updated** - Update tests when TypeScript modules change
 2. **Remove Obsolete Tests** - Clean up tests for removed features
 3. **Optimize Performance** - Keep test execution time reasonable
 4. **Review Coverage** - Ensure adequate test coverage
@@ -318,16 +346,17 @@ open coverage/lcov-report/index.html
 2. **Permission Issues** - Check Chrome extension permissions
 3. **API Issues** - Verify Chrome APIs are available
 4. **Environment Issues** - Check test environment setup
+5. **TypeScript Issues** - Verify TypeScript compilation
 
 ---
 
 ## 📊 Test Summary
 
 ### ✅ Reliable Command-Line Tests
-- **Unit Tests** - Core JavaScript functions (13 tests)
-- **Integration Tests** - Chrome API interactions (6 tests)  
-- **End-to-End Tests** - Complete workflows (5 tests)
-- **Total: 24 automated tests** with 100% reliability
+- **Unit Tests** - TypeScript modules and functions (8 tests)
+- **Integration Tests** - Chrome API interactions (9 tests)  
+- **End-to-End Tests** - Complete workflows (8 tests)
+- **Total: 25 automated tests** with 100% reliability
 
 ### 🎯 Manual Testing
 - **Extension Test Page** - Interactive feature testing
@@ -339,6 +368,7 @@ open coverage/lcov-report/index.html
 cd test
 npm install
 npm test          # Run all automated tests
+npm run test:typescript  # Run with TypeScript compilation
 npm run manual    # Get manual testing instructions
 ```
 

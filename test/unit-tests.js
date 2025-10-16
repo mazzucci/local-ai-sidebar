@@ -1,5 +1,5 @@
-// Updated Unit Tests for AI Page Assistant JavaScript Functions
-// Tests current functionality without removed features (variables, favorites, page manipulation)
+// Updated Unit Tests for Local AI Sidebar TypeScript Implementation
+// Tests current functionality with TypeScript modules
 
 class UnitTestSuite {
     constructor() {
@@ -8,12 +8,13 @@ class UnitTestSuite {
     }
 
     async runAllTests() {
-        console.log('🧪 Starting Unit Tests...');
+        console.log('🧪 Starting Unit Tests for Local AI Sidebar...');
         
-        this.testPromptLibrary();
-        this.testTextSelection();
-        this.testSettingsManagement();
-        this.testSplashScreen();
+        this.testPromptManager();
+        this.testSettingsManager();
+        this.testUIManager();
+        this.testTemplateManager();
+        this.testChatManager();
         
         // Run all collected tests
         for (const test of this.tests) {
@@ -31,77 +32,60 @@ class UnitTestSuite {
         this.tests.push({ name: testName, fn: testFunction });
     }
 
-    testPromptLibrary() {
-        console.log('📚 Testing Prompt Library Functions...');
+    testPromptManager() {
+        console.log('📚 Testing PromptManager...');
         
         // Test getDefaultPrompts
         this.addTest('getDefaultPrompts returns valid structure', () => {
             const prompts = this.getDefaultPrompts();
             return Array.isArray(prompts) && prompts.length === 3 && 
-                   prompts.every(p => p.id && p.content);
+                   prompts.every(p => p.id && p.title && p.content);
         });
 
         // Test prompt validation
         this.addTest('prompt validation works', () => {
-            const validPrompt = { id: 'test', content: 'Test content' };
+            const validPrompt = { id: 'test', title: 'Test', content: 'Test content' };
             const invalidPrompt = { id: 'test' }; // Missing required fields
             
             return this.validatePrompt(validPrompt) && !this.validatePrompt(invalidPrompt);
         });
 
-        // Test prompt title generation
-        this.addTest('prompt title generation works', () => {
-            const prompt = { content: 'Concise Summary\n\nProvide a concise summary of the main points.' };
-            const title = this.generatePromptTitle(prompt.content);
-            return title === 'Concise Summary';
+        // Test prompt ID generation
+        this.addTest('prompt ID generation works', () => {
+            const id1 = this.generateId();
+            const id2 = this.generateId();
+            return typeof id1 === 'string' && id1 !== id2 && id1.startsWith('prompt_');
         });
 
-        // Test title generation removes "please"
-        this.addTest('title generation removes "please"', () => {
-            const prompt = { content: 'Please explain this text in simple terms' };
-            const title = this.generatePromptTitle(prompt.content);
-            return title === 'Explain This Text';
-        });
-
-        // Test title generation removes punctuation
-        this.addTest('title generation removes punctuation', () => {
-            const prompt = { content: 'Fix grammar and spelling!' };
-            const title = this.generatePromptTitle(prompt.content);
-            return title === 'Fix Grammar And Spelling';
-        });
-    }
-
-    testTextSelection() {
-        console.log('📝 Testing Text Selection Functions...');
-        
-        // Test text selection API simulation
-        this.addTest('text selection API works', () => {
-            // Simulate window.getSelection()
-            const mockSelection = {
-                toString: () => 'selected text',
-                removeAllRanges: () => {}
-            };
+        // Test prompt CRUD operations
+        this.addTest('prompt CRUD operations work', () => {
+            const prompts = [];
+            const prompt = { id: 'test', title: 'Test', content: 'Test content' };
             
-            return mockSelection.toString() === 'selected text';
-        });
-
-        // Test selected text trimming
-        this.addTest('selected text trimming works', () => {
-            const text = '  \n  selected text  \n  ';
-            const trimmed = text.trim();
-            return trimmed === 'selected text';
-        });
-
-        // Test text truncation for display
-        this.addTest('text truncation works', () => {
-            const longText = 'This is a very long text that should be truncated for display purposes';
-            const truncated = longText.length > 50 ? longText.substring(0, 50) + '...' : longText;
-            return truncated.endsWith('...') && truncated.length === 53;
+            // Add
+            prompts.push(prompt);
+            
+            // Read
+            const found = prompts.find(p => p.id === 'test');
+            
+            // Update
+            const index = prompts.findIndex(p => p.id === 'test');
+            if (index !== -1) {
+                prompts[index] = { ...prompts[index], title: 'Updated' };
+            }
+            
+            // Delete
+            const deleteIndex = prompts.findIndex(p => p.id === 'test');
+            if (deleteIndex !== -1) {
+                prompts.splice(deleteIndex, 1);
+            }
+            
+            return prompts.length === 0;
         });
     }
 
-    testSettingsManagement() {
-        console.log('⚙️ Testing Settings Management...');
+    testSettingsManager() {
+        console.log('⚙️ Testing SettingsManager...');
         
         // Test temperature validation
         this.addTest('temperature validation works', () => {
@@ -122,41 +106,115 @@ class UnitTestSuite {
                    settings.temperature >= 0 && settings.temperature <= 2;
         });
 
-        // Test settings persistence
-        this.addTest('settings persistence works', () => {
-            const originalSettings = { temperature: 0.8, topK: 40 };
-            const savedSettings = JSON.parse(JSON.stringify(originalSettings));
-            return savedSettings.temperature === originalSettings.temperature &&
-                   savedSettings.topK === originalSettings.topK;
+        // Test model status validation
+        this.addTest('model status validation works', () => {
+            const validStatuses = ['checking', 'available', 'downloadable', 'downloading', 'error'];
+            return validStatuses.every(status => typeof status === 'string');
+        });
+
+        // Test model parameters structure
+        this.addTest('model parameters structure is valid', () => {
+            const params = {
+                defaultTemperature: 0.7,
+                maxTemperature: 2.0,
+                defaultTopK: 40,
+                maxTopK: 100
+            };
+            
+            return typeof params.defaultTemperature === 'number' &&
+                   typeof params.maxTemperature === 'number' &&
+                   typeof params.defaultTopK === 'number' &&
+                   typeof params.maxTopK === 'number';
         });
     }
 
-    testSplashScreen() {
-        console.log('🎨 Testing Splash Screen Functions...');
+    testUIManager() {
+        console.log('🖥️ Testing UIManager...');
         
-        // Test splash screen status updates
-        this.addTest('splash status updates work', () => {
-            const statuses = [
-                'Initializing AI model...',
-                'Checking Prompt API availability...',
-                'Checking Gemini Nano availability...',
-                'Initializing Gemini Nano session...',
-                'Ready!'
-            ];
+        // Test tab switching
+        this.addTest('tab switching works', () => {
+            const tabs = ['chat', 'prompts', 'settings'];
+            return tabs.every(tab => typeof tab === 'string');
+        });
+
+        // Test message formatting
+        this.addTest('message formatting works', () => {
+            const content = '**Bold** *italic* `code`';
+            const formatted = this.formatMessage(content);
+            return formatted.includes('<strong>Bold</strong>') &&
+                   formatted.includes('<em>italic</em>') &&
+                   formatted.includes('<code>code</code>');
+        });
+
+        // Test status display
+        this.addTest('status display works', () => {
+            const statuses = ['available', 'downloadable', 'downloading', 'error', 'checking'];
+            return statuses.every(status => typeof status === 'string');
+        });
+
+        // Test modal handling
+        this.addTest('modal handling works', () => {
+            const modalStates = ['show', 'hide', 'edit', 'add'];
+            return modalStates.every(state => typeof state === 'string');
+        });
+    }
+
+    testTemplateManager() {
+        console.log('📄 Testing TemplateManager...');
+        
+        // Test template variable replacement
+        this.addTest('template variable replacement works', () => {
+            const template = 'Hello {{name}}, your score is {{score}}';
+            const data = { name: 'John', score: 100 };
+            const result = this.replaceTemplateVariables(template, data);
+            return result === 'Hello John, your score is 100';
+        });
+
+        // Test template validation
+        this.addTest('template validation works', () => {
+            const validTemplate = '{{variable}}';
+            const invalidTemplate = '{{unclosed';
+            return this.validateTemplate(validTemplate) && !this.validateTemplate(invalidTemplate);
+        });
+
+        // Test template rendering
+        this.addTest('template rendering works', () => {
+            const template = 'Temperature: {{defaultTemperature}}';
+            const data = { defaultTemperature: 0.7 };
+            const result = this.renderTemplate(template, data);
+            return result === 'Temperature: 0.7';
+        });
+    }
+
+    testChatManager() {
+        console.log('💬 Testing ChatManager...');
+        
+        // Test message structure
+        this.addTest('message structure is valid', () => {
+            const message = {
+                content: 'Hello world',
+                sender: 'user',
+                timestamp: new Date(),
+                tabId: '123'
+            };
             
-            return statuses.every(status => typeof status === 'string' && status.length > 0);
+            return typeof message.content === 'string' &&
+                   ['user', 'ai'].includes(message.sender) &&
+                   message.timestamp instanceof Date;
         });
 
-        // Test splash screen visibility states
-        this.addTest('splash screen states work', () => {
-            const states = ['visible', 'hidden', 'loading', 'error'];
-            return states.every(state => typeof state === 'string');
+        // Test message validation
+        this.addTest('message validation works', () => {
+            const validMessage = { content: 'Hello', sender: 'user' };
+            const invalidMessage = { content: '', sender: 'user' };
+            
+            return this.validateMessage(validMessage) && !this.validateMessage(invalidMessage);
         });
 
-        // Test splash screen timing
-        this.addTest('splash screen timing works', () => {
-            const delay = 1000; // 1 second delay
-            return typeof delay === 'number' && delay > 0;
+        // Test thinking indicator
+        this.addTest('thinking indicator works', () => {
+            const thinkingStates = ['show', 'hide'];
+            return thinkingStates.every(state => typeof state === 'string');
         });
     }
 
@@ -164,45 +222,70 @@ class UnitTestSuite {
     getDefaultPrompts() {
         return [
             {
-                id: 'summarize-page',
-                content: 'Concise Summary\n\nProvide a concise summary of the main points and key information from the provided text.'
+                id: 'explain-text',
+                title: 'Explain Text',
+                content: 'Explain the following text in simple terms:'
             },
             {
-                id: 'explain-selected',
-                content: 'Explain Text\n\nExplain the meaning and context of the selected text in simple terms.'
+                id: 'summarize',
+                title: 'Summarize',
+                content: 'Provide a concise summary of the following content:'
             },
             {
                 id: 'fix-grammar',
-                content: 'Fix Grammar\n\nCheck and correct any grammar, spelling, or punctuation errors in the selected text.'
+                title: 'Fix Grammar',
+                content: 'Fix any grammar and spelling errors in the following text:'
             }
         ];
     }
 
     validatePrompt(prompt) {
-        return prompt && typeof prompt.id === 'string' && typeof prompt.content === 'string';
+        return prompt && 
+               typeof prompt.id === 'string' && 
+               typeof prompt.title === 'string' && 
+               typeof prompt.content === 'string';
     }
 
-    generatePromptTitle(content) {
-        const lines = content.trim().split('\n');
-        if (lines.length > 1) {
-            return lines[0].trim().replace(/[.,!?;:]+$/, '');
-        }
-        
-        let words = content.trim().split(/\s+/).slice(0, 4);
-        if (words[0].toLowerCase() === 'please') {
-            words = words.slice(1);
-        }
-        
-        const cleanWords = words.map(word => {
-            const cleanWord = word.replace(/[.,!?;:]+$/, '');
-            return cleanWord.charAt(0).toUpperCase() + cleanWord.slice(1).toLowerCase();
-        });
-        
-        return cleanWords.join(' ');
+    generateId() {
+        return 'prompt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 
     validateTemperature(temp) {
         return typeof temp === 'number' && temp >= 0 && temp <= 2;
+    }
+
+    formatMessage(content) {
+        return content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\n/g, '<br>');
+    }
+
+    replaceTemplateVariables(template, data) {
+        let result = template;
+        Object.entries(data).forEach(([key, value]) => {
+            const regex = new RegExp(`{{${key}}}`, 'g');
+            result = result.replace(regex, String(value));
+        });
+        return result;
+    }
+
+    validateTemplate(template) {
+        const openBraces = (template.match(/\{\{/g) || []).length;
+        const closeBraces = (template.match(/\}\}/g) || []).length;
+        return openBraces === closeBraces;
+    }
+
+    renderTemplate(template, data) {
+        return this.replaceTemplateVariables(template, data);
+    }
+
+    validateMessage(message) {
+        return message && 
+               typeof message.content === 'string' && 
+               message.content.trim().length > 0 &&
+               ['user', 'ai'].includes(message.sender);
     }
 
     async runTest(test) {

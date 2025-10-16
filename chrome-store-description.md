@@ -14,23 +14,21 @@ Local AI Sidebar brings powerful AI capabilities directly to your browser using 
 
 The extension provides a simple chat interface where you can ask questions directly to the local AI model. Simply type your questions and get instant responses without any external data transmission. You can ask about any topic, get explanations, request summaries, or engage in conversations - all processed locally on your device.
 
-For enhanced functionality, the extension offers optional advanced features. Text selection analysis automatically detects when you select text on any webpage, allowing you to ask questions like "Explain this" or "Summarize this" to get context-aware responses without copying and pasting between tabs or applications.
+For enhanced functionality, the extension offers a simple manual paste approach. Copy any text from any webpage and paste it directly into the chat for analysis. Simply copy any text, paste it in the chat input, and ask questions like "Explain this" or "Summarize this" to get context-aware responses without any page access or data transmission.
 
-Smart page summarization is another optional feature that allows you to analyze entire articles, research papers, or documents by enabling the page content toggle. This feature extracts comprehensive summaries, key insights, and main points from any webpage content while maintaining complete privacy.
+Smart content analysis allows you to analyze entire articles, research papers, or documents by copying the content and pasting it into the chat. This feature provides comprehensive summaries, key insights, and main points from any content while maintaining complete privacy.
 
 Custom AI workflows let you create and save your own AI prompts for specific tasks. Whether you need to analyze legal documents, summarize technical papers, or explain complex concepts, you can build a library of custom prompts that work exactly how you need them.
 
 **How It Works**
 
-Setup is incredibly simple. Install the extension with no registration required, click the extension icon to open the AI sidebar, and the AI model downloads automatically on first use. You can start using AI assistance immediately without any complex configuration.
+Setup is incredibly simple. Install the extension with no registration required, click the extension icon to open the AI sidebar, and the AI model downloads automatically on first use with a beautiful splash screen showing real-time progress. You can start using AI assistance immediately without any complex configuration.
 
-Smart text selection works when you have the sidebar open and interact with the chat. When you select text on a webpage and then ask a question in the sidebar, the extension automatically includes your selected text in the context. This creates a seamless workflow for analyzing specific portions of documents without constantly monitoring your selections.
-
-Page content analysis gives you full control over what information the AI processes. Toggle "Include Page Content" for comprehensive document analysis, or keep it off when you want to maintain privacy. This flexibility ensures you can get detailed insights when needed while protecting sensitive information when required.
+The extension uses Chrome's built-in Prompt API to access the Gemini Nano AI model that runs locally on your device. When you ask a question or paste content for analysis, the AI processes everything locally without any internet connection or data transmission. The extension never accesses webpage content automatically - you maintain complete control over what gets analyzed by manually copying and pasting content.
 
 Custom prompts can be created in the Prompts tab, saved for quick access, and used as one-click buttons for instant execution. This feature allows you to build personalized workflows for your specific needs, whether you're analyzing research papers, reviewing contracts, or creating content.
 
-Tab-specific conversations ensure each browser tab maintains its own AI conversation history. This allows you to work on multiple documents simultaneously without losing context or mixing up different projects, creating a truly organized workflow.
+Centralized conversations ensure all your AI interactions are maintained in a single conversation history. This allows you to build context across different documents and projects while maintaining a clean, organized workflow. Use the "New Chat" button to start fresh conversations whenever needed.
 
 The quick prompt library provides pre-built prompts for common tasks like summarization, explanation, and analysis. You can customize these prompts or create your own for specific workflows, building a personalized AI assistant that works exactly how you need it.
 
