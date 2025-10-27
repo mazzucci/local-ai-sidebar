@@ -2,8 +2,7 @@
 
 export interface ChatMessage {
   content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
+  sender: 'user' | 'assistant';
 }
 
 export interface Prompt {
@@ -13,8 +12,16 @@ export interface Prompt {
 }
 
 export interface Settings {
+  // LLM generation parameters
   temperature: number;
   topK: number;
+  maxTemperature: number;     // UI read-only, used for validation
+  maxTopK: number;            // UI read-only, used for validation
+  maxRecentMessages: number;  // UI read-only, limits conversation context
+  
+  // RAG search parameters
+  maxSources: number;
+  minSimilarityThreshold: number;
 }
 
 export interface ModelParameters {
@@ -59,3 +66,9 @@ export interface SettingsState {
   modelStatus: ModelStatus;
   isDownloading: boolean;
 }
+
+// Re-export knowledge types
+export * from './knowledge.js';
+
+// Re-export settings
+export * from '../config/settings.js';

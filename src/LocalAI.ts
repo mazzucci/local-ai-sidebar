@@ -1,95 +1,151 @@
-import { Prompt } from './types/index.js';
-import { ChatManager } from './modules/ChatManager.js';
-import { PromptManager } from './modules/PromptManager.js';
-import { SettingsManager } from './modules/SettingsManager.js';
-import { UIManager } from './modules/UIManager.js';
-import { debugLog, debugError } from './utils/debug.js';
+import { ChatManager } from './managers/ChatManager.js';
+import { PromptManager } from './managers/PromptManager.js';
+import { SettingsManager } from './managers/SettingsManager.js';
+import { KnowledgeManager } from './managers/KnowledgeManager.js';
+import { UIManager } from './ui/UIManager.js';
+import { RAGManager } from './managers/RAGManager.js';
+import { logger } from "./utils/logger.js";
 
 export class LocalAI {
   private chatManager: ChatManager;
   private promptManager: PromptManager;
   private settingsManager: SettingsManager;
+  private knowledgeManager: KnowledgeManager;
   private uiManager: UIManager;
-  private session: any = null;
+  private ragManager: RAGManager | null = null;
 
   constructor() {
-    debugLog('LocalAI constructor called');
-    
+    // Create all managers (business logic layer)
     this.chatManager = new ChatManager();
     this.promptManager = new PromptManager();
     this.settingsManager = new SettingsManager();
-    this.uiManager = new UIManager();
+    this.knowledgeManager = new KnowledgeManager();
+    
+    // Initialize RAG components
+    this.ragManager = new RAGManager(
+      this.knowledgeManager,
+      this.chatManager,
+      this.settingsManager
+    );
+    
+    // Create UIManager (UI coordination layer) - it creates all UI components internally
+    this.uiManager = new UIManager(
+      this.chatManager,
+      this.promptManager,
+      this.knowledgeManager,
+      this.settingsManager,
+      this.ragManager,
+      {
+        onStartDownload: () => this.startDownloadFromSplash(),
+        onCheckDownloadProgress: () => this.checkModelAvailability(),
+        onDownloadProgressUpdate: (progress: number, loaded: number, total: number) => {
+          this.uiManager.updateDownloadProgress(progress, loaded, total);
+        }
+      }
+    );
     
     this.init();
   }
 
   private async init(): Promise<void> {
-    debugLog('LocalAI init started');
-    
-    // Set up event listeners
-    this.setupEventListeners();
-    
-    // Initialize UI components
-    await this.uiManager.initialize();
-    
-    // Show splash screen and start loading
-    this.uiManager.showSplashScreen();
-    
-    // Check model availability
-    await this.checkModelAvailability();
-    
-    // Initialize prompt library
-    this.renderPrompts();
-    this.renderQuickPrompts();
-    
-    debugLog('LocalAI init completed');
+    try {
+      // Initialize knowledge system with error handling
+      try {
+        await this.knowledgeManager.init();
+        logger.debug('Knowledge system initialized successfully');
+      } catch (error) {
+        logger.error('Failed to initialize knowledge system:', error);
+        logger.debug('Continuing without knowledge system - RAG features will be disabled');
+        // Don't let knowledge system errors affect AI detection
+      }
+      
+      // Initialize UI components (each UI component initializes itself)
+      await this.uiManager.initialize();
+      
+      // Show splash screen and start loading
+      this.uiManager.showSplashScreen();
+      
+      // Check model availability
+      await this.checkModelAvailability();
+    } catch (error) {
+      logger.error('Critical error during LocalAI initialization:', error);
+      // Show error screen instead of staying on splash
+      this.uiManager.showErrorHelp();
+    }
   }
 
-  private setupEventListeners(): void {
-    // Custom events from UIManager
-    document.addEventListener('sendMessage', (e: any) => {
-      this.handleSendMessage(e.detail.message);
-    });
-
-    document.addEventListener('clearChat', () => {
-      this.handleClearChat();
-    });
-
-    document.addEventListener('usePrompt', (e: any) => {
-      this.handleUsePrompt(e.detail.prompt);
-    });
-
-    document.addEventListener('addPrompt', () => {
-      this.handleAddPrompt();
-    });
-
-    document.addEventListener('editPrompt', (e: any) => {
-      this.handleEditPrompt(e.detail.promptId);
-    });
-
-    document.addEventListener('deletePrompt', (e: any) => {
-      this.handleDeletePrompt(e.detail.promptId);
-    });
-
-    document.addEventListener('startDownload', () => {
-      this.startDownloadFromSplash();
-    });
-
-    document.addEventListener('checkDownloadProgress', () => {
-      this.checkModelAvailability();
-    });
-
-    document.addEventListener('newChat', () => {
-      this.handleNewChat();
-    });
-  }
 
   private async checkModelAvailability(): Promise<void> {
     try {
       this.uiManager.updateSplashStatus('Checking AI model availability...');
       this.uiManager.updateModelStatusDisplay('checking');
       
-      const status = await this.settingsManager.checkModelAvailability();
+      const statusPromise = this.ragManager?.checkModelAvailability();
+      if (!statusPromise) {
+        throw new Error('RAGManager not initialized');
+      }
+      
+      // Add timeout to prevent infinite hanging
+      let timeoutFired = false;
+      const timeoutPromise = new Promise<string>((resolve) => {
+        setTimeout(() => {
+          timeoutFired = true;
+          resolve('timeout');
+        }, 10000);
+      });
+      
+      let status = await Promise.race([statusPromise, timeoutPromise]);
+      
+      logger.debug('Model availability status received:', status);
+      
+      // Only log timeout if it actually fired
+      if (timeoutFired && status === 'timeout') {
+        logger.debug('Model availability check timed out after 10 seconds');
+      }
+      
+      // Handle timeout case
+      if (status === 'timeout') {
+        logger.debug('Initial model check timed out after 10 seconds, but this is normal for slow systems');
+        this.uiManager.updateSplashStatus('⏳ Model check taking longer than expected...');
+        this.uiManager.updateModelStatusDisplay('checking', 'Taking longer than expected');
+        
+        // Try to get the actual result with a longer timeout
+        try {
+          logger.debug('Attempting to get model status with extended timeout...');
+          this.uiManager.updateSplashStatus('⏳ Still checking model availability...');
+          
+          // Use a longer timeout for the second attempt
+          const extendedTimeoutPromise = new Promise<string>((resolve) => {
+            setTimeout(() => {
+              logger.debug('Extended model availability check timed out after 30 seconds');
+              resolve('timeout');
+            }, 30000);
+          });
+          
+          const extendedStatusPromise = this.ragManager?.checkModelAvailability();
+          if (!extendedStatusPromise) {
+            throw new Error('RAGManager not initialized');
+          }
+          const extendedStatus = await Promise.race([extendedStatusPromise, extendedTimeoutPromise]);
+          
+          if (extendedStatus === 'timeout') {
+            logger.error('Model availability check failed after extended timeout');
+            this.uiManager.updateSplashStatus('❌ Model check timed out - please try refreshing');
+            this.uiManager.updateModelStatusDisplay('error', 'Check timed out');
+            this.uiManager.showErrorHelp();
+            return;
+          }
+          
+          logger.debug('Model status received after extended timeout:', extendedStatus);
+          status = extendedStatus; // Use the actual status
+        } catch (error) {
+          logger.error('Failed to get model status after extended timeout:', error);
+          this.uiManager.updateSplashStatus('❌ Unable to check model availability');
+          this.uiManager.updateModelStatusDisplay('error', 'Check failed');
+          this.uiManager.showErrorHelp();
+          return;
+        }
+      }
       
       switch (status) {
         case 'available':
@@ -114,105 +170,72 @@ export class LocalAI {
         case 'error':
           this.uiManager.updateSplashStatus('❌ AI model not available. Please check Chrome version and AI settings.');
           this.uiManager.updateModelStatusDisplay('error');
-          this.showErrorHelp();
+          this.uiManager.showErrorHelp();
           break;
+          
+        default:
+          logger.error('Unknown model status:', status);
+          this.uiManager.updateSplashStatus('❌ Unknown model status');
+          this.uiManager.updateModelStatusDisplay('error');
+          this.uiManager.showErrorHelp();
       }
     } catch (error) {
-      debugError('Error checking model availability:', error);
+      logger.error('Error checking model availability:', error);
       this.uiManager.updateSplashStatus('❌ Error checking model availability');
       this.uiManager.updateModelStatusDisplay('error', 'Error checking model availability');
-      this.showErrorHelp();
+      this.uiManager.showErrorHelp();
     }
   }
 
-  private showErrorHelp(): void {
-    const splashContent = document.querySelector('.splash-content');
-    if (!splashContent) return;
+  // ========== AI Initialization Methods ==========
 
-    const helpSection = document.createElement('div');
-    helpSection.className = 'splash-help-section';
-    helpSection.innerHTML = `
-      <div class="splash-help-content">
-        <h4>🔧 Troubleshooting</h4>
-        <p>The Chrome AI API might not be available. Try these steps:</p>
-        <ul>
-          <li>✅ Make sure you're using Chrome 138+</li>
-          <li>✅ Enable AI features in chrome://flags</li>
-          <li>✅ Check chrome://on-device-internals for AI status</li>
-          <li>✅ Try refreshing the extension</li>
-        </ul>
-        <p><strong>Chrome Flags to enable:</strong></p>
-        <ul>
-          <li>#on-device-model</li>
-          <li>#optimization-guide-on-device-model</li>
-        </ul>
-        <button id="splash-continue-anyway-btn" class="splash-continue-button">
-          Continue Anyway
-        </button>
-      </div>
-    `;
-
-    // Remove existing help section
-    const existingHelp = splashContent.querySelector('.splash-help-section');
-    if (existingHelp) {
-      existingHelp.remove();
+  /**
+   * initializeAI: Initialize AI session and model
+   * - Check model availability (done before calling this)
+   * - Initialize RAG session with conversation history
+   * - Load model parameters
+   */
+  private async initializeAI(): Promise<void> {
+    logger.debug('Window object keys:', Object.keys(window).filter(key => key.includes('Language') || key.includes('AI') || key.includes('chrome')));
+    
+    if (!('LanguageModel' in window)) {
+      logger.debug('LanguageModel not available, skipping AI initialization');
+      return;
     }
 
-    splashContent.appendChild(helpSection);
+    await this.ragManager?.initializeSession();
+    await this.ragManager?.loadModelParameters();
+  }
 
-    // Add event listener
-    const continueBtn = document.getElementById('splash-continue-anyway-btn');
-    if (continueBtn) {
-      continueBtn.addEventListener('click', () => {
-        this.uiManager.hideSplashScreen();
-      });
+  /**
+   * updateModelParamsUI: Update model parameters display after AI initialization
+   */
+  private async updateModelParamsUI(): Promise<void> {
+    const modelParams = this.ragManager?.getModelParameters();
+    logger.debug('Model parameters received:', modelParams);
+    
+    if (modelParams) {
+      this.uiManager.updateModelParamsDisplay(modelParams);
+    } else {
+      this.uiManager.updateModelParamsDisplay('Model parameters not available');
     }
   }
 
+  /**
+   * initializeSession: Initialize AI session and update UI
+   */
   private async initializeSession(): Promise<void> {
     try {
-      if (!('LanguageModel' in window)) {
-        debugLog('LanguageModel not available, running in demo mode');
-        this.addWelcomeMessage();
-        this.uiManager.hideSplashScreen();
-        return;
-      }
-
-      // Get conversation history for initial prompts
-      const conversationHistory = this.buildConversationHistory();
-      
-      const modelOptions = {
-        language: 'en' as const,
-        outputLanguage: 'en' as const,
-        initialPrompts: conversationHistory
-      };
-
-      this.session = await (window as any).LanguageModel.create(modelOptions);
-      debugLog('AI session initialized successfully with conversation history');
-      
-      // Load model parameters
-      await this.settingsManager.loadModelParameters();
-      
-      // Update model parameters display
-      const modelParams = this.settingsManager.getModelParameters();
-      debugLog('Model parameters received:', modelParams);
-      if (modelParams) {
-        this.uiManager.updateModelParamsDisplay(modelParams);
-      } else {
-        this.uiManager.updateModelParamsDisplay('Model parameters not available');
-      }
-      
-      // Add welcome message
-      this.addWelcomeMessage();
-      
+      await this.initializeAI();
+      await this.updateModelParamsUI();
+      this.uiManager.hideSplashScreen();
     } catch (error) {
-      debugError('Error initializing session:', error);
-      debugLog('Running in demo mode due to AI initialization error');
+      logger.error('Error initializing session:', error);
+      logger.debug('Running in demo mode due to initialization error');
       
       // Update model parameters display with error message
       this.uiManager.updateModelParamsDisplay('Model parameters not available - running in demo mode');
       
-      this.addWelcomeMessage();
       this.uiManager.hideSplashScreen();
     }
   }
@@ -221,7 +244,11 @@ export class LocalAI {
     try {
       this.uiManager.showSplashProgress();
       
-      const success = await this.settingsManager.downloadModel();
+      // Pass progress callback directly to downloadModel
+      const success = await this.ragManager?.downloadModel((progress, loaded, total) => {
+        this.uiManager.updateDownloadProgress(progress, loaded, total);
+      });
+      
       if (success) {
         this.uiManager.updateModelStatusDisplay('available');
         await this.initializeSession();
@@ -231,327 +258,13 @@ export class LocalAI {
         this.uiManager.updateModelStatusDisplay('error', 'Download failed');
       }
     } catch (error) {
-      debugError('Error starting download:', error);
+      logger.error('Error starting download:', error);
       this.uiManager.updateSplashStatus('❌ Download failed. Please try again.');
       this.uiManager.updateModelStatusDisplay('error', 'Download failed');
     }
   }
 
-  private async handleSendMessage(message: string): Promise<void> {
-    debugLog('handleSendMessage called with:', message);
-    
-    if (!this.session) {
-      debugLog('No session available, showing demo response');
-      this.chatManager.addMessage(message, 'user');
-      this.uiManager.addMessage(message, 'user');
-      
-      // Demo response when AI is not available
-      const demoResponse = `I'm running in demo mode because the Chrome AI API is not available. 
-
-To enable full AI functionality:
-1. Make sure you're using Chrome 138+
-2. Enable these flags in chrome://flags:
-   - #on-device-model
-   - #optimization-guide-on-device-model
-3. Restart Chrome
-4. Reload this extension
-
-Your message was: "${message}"`;
-      
-      this.chatManager.addMessage(demoResponse, 'ai');
-      this.uiManager.addMessage(demoResponse, 'ai');
-      return;
-    }
-
-    // Add user message to chat
-    this.chatManager.addMessage(message, 'user');
-    this.uiManager.addMessage(message, 'user');
-
-    // Show thinking indicator
-    this.uiManager.showThinkingIndicator();
-
-    try {
-      const settings = this.settingsManager.getSettings();
-      
-      // Send to Gemini Nano using the proper conversation format
-      const response = await this.session.prompt([
-        {
-          role: 'user',
-          content: message
-        }
-      ], {
-        temperature: settings.temperature,
-        topK: settings.topK
-      });
-
-      this.uiManager.hideThinkingIndicator();
-      
-      debugLog('AI Response:', response);
-      this.chatManager.addMessage(response, 'ai');
-      this.uiManager.addMessage(response, 'ai');
-    } catch (error) {
-      debugError('Error sending message:', error);
-      this.uiManager.hideThinkingIndicator();
-      this.uiManager.addMessage('Sorry, I encountered an error. Please try again.', 'ai');
-    }
-  }
-
-  private handleClearChat(): void {
-    debugLog('Clear button clicked - clearing chatbox only');
-    
-    const chatInput = document.getElementById('chat-input') as HTMLInputElement;
-    if (chatInput) {
-      chatInput.value = '';
-      chatInput.focus();
-      debugLog('Chat input cleared');
-    }
-  }
-
-  private handleNewChat(): void {
-    debugLog('New chat button clicked - starting fresh conversation');
-    
-    // Clear chat history
-    this.chatManager.clearChatHistory();
-    
-    // Clear chat messages UI (not the entire container)
-    const chatMessages = document.getElementById('chat-messages');
-    if (chatMessages) {
-      chatMessages.innerHTML = '';
-    }
-    
-    // Clear chat input
-    const chatInput = document.getElementById('chat-input') as HTMLInputElement;
-    if (chatInput) {
-      chatInput.value = '';
-      chatInput.focus();
-    }
-    
-    // Reinitialize session with empty conversation history
-    this.initializeSession();
-    
-    debugLog('New chat session started');
-  }
-
-  private handleUsePrompt(prompt: Prompt): void {
-    debugLog('Quick prompt clicked, manual paste approach');
-    
-    // Switch to chat tab
-    this.uiManager.switchToTab('chat');
-
-    const chatInput = document.getElementById('chat-input') as HTMLInputElement;
-    if (chatInput) {
-      const currentContent = chatInput.value.trim();
-      
-      if (currentContent) {
-        // If there's existing content, put the prompt instruction first, then the content
-        chatInput.value = `${prompt.content}\n\n${currentContent}`;
-      } else {
-        // If no existing content, just use the prompt
-        chatInput.value = prompt.content;
-      }
-      
-      // Focus and send the message directly
-      chatInput.focus();
-      
-      // Send the message directly using the prompt content
-      this.handleSendMessage(chatInput.value);
-      
-      // Clear the input after sending
-      chatInput.value = '';
-    }
-  }
-
-  private addWelcomeMessage(): void {
-    const welcomeMessage = 'Hello! I can help you with any content. Type your message below or use the quick prompts above for quick access.\n\n🔒 Privacy: This extension works with content you manually copy and paste. Simply copy any text from any webpage and paste it in the chat input, then use quick prompts or ask questions.';
-    this.chatManager.addMessage(welcomeMessage, 'ai');
-    this.uiManager.addMessage(welcomeMessage, 'ai');
-  }
-
-  private buildConversationHistory(): any[] {
-    const messages = this.chatManager.getAllMessages();
-    const conversationHistory: any[] = [];
-    
-    // Add system message
-    conversationHistory.push({
-      role: 'system',
-      content: 'You are a helpful AI assistant that works with content users manually copy and paste. Provide informative and helpful responses about the content they share. Do not suggest page modifications or formatting changes.'
-    });
-    
-    // Convert chat messages to API format
-    messages.forEach(msg => {
-      conversationHistory.push({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      });
-    });
-    
-    return conversationHistory;
-  }
-
-  private renderPrompts(): void {
-    const prompts = this.promptManager.getAllPrompts();
-    debugLog('Rendering prompts:', prompts.length);
-    // Render prompts in the prompts tab
-    this.uiManager.renderPromptsLibrary(prompts);
-  }
-
-  private renderQuickPrompts(): void {
-    const allPrompts = this.promptManager.getAllPrompts();
-    debugLog('Rendering all prompts as quick prompts:', allPrompts.length, allPrompts);
-    this.uiManager.renderPrompts(allPrompts);
-  }
-
-  // Public methods for external access
-  public getChatManager(): ChatManager {
-    return this.chatManager;
-  }
-
-  public getPromptManager(): PromptManager {
-    return this.promptManager;
-  }
-
-  public getSettingsManager(): SettingsManager {
-    return this.settingsManager;
-  }
-
-  public getUIManager(): UIManager {
-    return this.uiManager;
-  }
-
-  // Prompt management methods
-  private handleAddPrompt(): void {
-    debugLog('Add prompt requested');
-    this.showPromptModal();
-  }
-
-  private handleEditPrompt(promptId: string): void {
-    debugLog('Edit prompt requested:', promptId);
-    const prompt = this.promptManager.getPromptById(promptId);
-    if (prompt) {
-      this.showPromptModal(prompt);
-    }
-  }
-
-  private handleDeletePrompt(promptId: string): void {
-    debugLog('Delete prompt requested:', promptId);
-    if (confirm('Are you sure you want to delete this prompt?')) {
-      this.promptManager.deletePrompt(promptId);
-      this.renderPrompts(); // Refresh the prompts list
-      this.renderQuickPrompts(); // Refresh quick prompts
-    }
-  }
-
-  private showPromptModal(prompt?: any): void {
-    const modal = document.getElementById('prompt-modal');
-    const titleInput = document.getElementById('prompt-title-input') as HTMLInputElement;
-    const contentInput = document.getElementById('prompt-content-input') as HTMLTextAreaElement;
-    const modalTitle = document.getElementById('modal-title');
-    
-    if (!modal || !titleInput || !contentInput || !modalTitle) return;
-
-    if (prompt) {
-      // Edit mode
-      modalTitle.textContent = 'Edit Prompt';
-      titleInput.value = prompt.title;
-      contentInput.value = prompt.content;
-    } else {
-      // Add mode
-      modalTitle.textContent = 'Add New Prompt';
-      titleInput.value = '';
-      contentInput.value = '';
-    }
-
-    modal.style.display = 'block';
-    titleInput.focus();
-
-    // Set up event listeners
-    this.setupModalListeners(prompt);
-  }
-
-  private setupModalListeners(editingPrompt?: any): void {
-    const modal = document.getElementById('prompt-modal');
-    const closeBtn = document.getElementById('modal-close');
-    const cancelBtn = document.getElementById('modal-cancel');
-    const saveBtn = document.getElementById('modal-save');
-    const titleInput = document.getElementById('prompt-title-input') as HTMLInputElement;
-    const contentInput = document.getElementById('prompt-content-input') as HTMLTextAreaElement;
-
-    if (!modal || !closeBtn || !cancelBtn || !saveBtn) return;
-
-    const closeModal = () => {
-      modal.style.display = 'none';
-    };
-
-    // Remove existing event listeners to prevent duplicates
-    const newCloseBtn = closeBtn.cloneNode(true) as HTMLButtonElement;
-    const newCancelBtn = cancelBtn.cloneNode(true) as HTMLButtonElement;
-    const newSaveBtn = saveBtn.cloneNode(true) as HTMLButtonElement;
-    
-    closeBtn.parentNode?.replaceChild(newCloseBtn, closeBtn);
-    cancelBtn.parentNode?.replaceChild(newCancelBtn, cancelBtn);
-    saveBtn.parentNode?.replaceChild(newSaveBtn, saveBtn);
-
-    // Close modal events
-    newCloseBtn.addEventListener('click', closeModal);
-    newCancelBtn.addEventListener('click', closeModal);
-    
-    // Close on outside click
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal();
-      }
-    });
-
-    // Save prompt
-    newSaveBtn.addEventListener('click', () => {
-      const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
-
-      // Validation
-      if (!title) {
-        alert('Please enter a prompt title.');
-        titleInput.focus();
-        return;
-      }
-
-      if (!content) {
-        alert('Please enter prompt content.');
-        contentInput.focus();
-        return;
-      }
-
-      if (title.length > 100) {
-        alert('Prompt title is too long. Please keep it under 100 characters.');
-        titleInput.focus();
-        return;
-      }
-
-      if (editingPrompt) {
-        // Update existing prompt
-        this.promptManager.updatePrompt(editingPrompt.id, { title, content });
-      } else {
-        // Add new prompt
-        this.promptManager.addPrompt(title, content);
-      }
-
-      this.renderPrompts(); // Refresh the prompts list
-      this.renderQuickPrompts(); // Refresh quick prompts
-      closeModal();
-    });
-  }
 }
 
 // Initialize the Local AI immediately
-debugLog('About to create LocalAI instance...');
-const assistant = new LocalAI();
-
-// Expose debug methods globally for testing
-(window as any).debugAssistant = assistant;
-(window as any).debugElements = () => {
-  debugLog('=== DEBUG ELEMENTS ===');
-  debugLog('include-page-content checkbox:', document.getElementById('include-page-content'));
-  debugLog('All toggle labels:', document.querySelectorAll('.toggle-label'));
-  debugLog('All checkboxes:', document.querySelectorAll('input[type="checkbox"]'));
-  debugLog('All toggle sliders:', document.querySelectorAll('.toggle-slider'));
-  debugLog('====================');
-};
+new LocalAI();

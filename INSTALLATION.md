@@ -1,60 +1,50 @@
-# 🚀 Quick Installation Guide - Local AI Sidebar
+# Installation Guide - Local AI Sidebar
 
-## Step 1: Check System Requirements
-Make sure your system meets these requirements:
+## Requirements
 - Chrome 138+ (latest version recommended)
 - Chrome Prompt API enabled
-- For detailed requirements and browser support, see: [Chrome Prompt API Documentation](https://developer.chrome.com/docs/ai/prompt-api)
+- For detailed requirements, see: [Chrome Prompt API Documentation](https://developer.chrome.com/docs/ai/prompt-api)
 
-## Step 2: Load the Extension in Chrome
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable **Developer mode** (toggle in top right corner)
-3. Click **"Load unpacked"**
-4. Select this folder (`/Users/stelian.matei/Projects/horus`)
-5. The extension should now appear in your extensions list
+## Option 1: Install from Chrome Web Store (Recommended)
 
-## Step 3: Pin the Extension
-1. Click the puzzle piece icon in Chrome's toolbar
-2. Find "Local AI Sidebar" and click the pin icon
-3. The extension icon should now be visible in your toolbar
+Install the extension directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/local-ai-sidebar/oihcenhffgplemccnbaopcflipaiplmo):
 
-## Step 4: Set Up the AI Model
-1. Click the Local AI Sidebar icon in your toolbar
-2. You'll see a beautiful splash screen while the model loads
-3. If the AI model needs to be downloaded, follow the prompts
-4. Adjust the creativity level if desired (0.0 = focused, 2.0 = very creative)
-5. Click **"Save Settings"**
+1. Visit the [Local AI Sidebar](https://chromewebstore.google.com/detail/local-ai-sidebar/oihcenhffgplemccnbaopcflipaiplmo) page
+2. Click **"Add to Chrome"**
+3. Click the extension icon to open the AI sidebar
+4. The AI model will download automatically on first use (~2GB)
 
-## Step 5: Start Using!
-1. Go to any website
-2. Click the Local AI Sidebar icon
-3. Try these example prompts:
-   - "Summarize this page"
-   - "What are the main topics discussed?"
-   - "Explain this selected text"
-   - "Fix the grammar in this paragraph"
-   - "What does this technical term mean?"
+## Option 2: Install from Source (Developers)
 
-## 🎯 Quick Prompts
-Use the **Quick Prompts** section for instant:
-- Page summarization
-- Text explanation
-- Grammar checking
-- Custom prompts you create
+For development or testing the latest features:
 
-## 🔧 Troubleshooting
-- **Extension not loading**: Make sure Chrome is version 138+
-- **AI not responding**: Check if the local AI model is downloaded and Chrome Prompt API is enabled
-- **Model download fails**: Check Chrome Prompt API documentation for requirements
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/mazzucci/local-ai-sidebar
+   cd local-ai-sidebar
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Build the extension:**
+   ```bash
+   npm run build:prod
+   ```
+   This creates the `dist/` folder with the bundled extension.
+
+4. **Load in Chrome:**
+   - Open Chrome and go to `chrome://extensions/`
+   - Enable **Developer mode** (toggle in top right corner)
+   - Click **"Load unpacked"**
+   - Select the `dist/` folder from this project
+
+5. Click the extension icon to open the AI sidebar
+
+## Troubleshooting
+- **Extension not loading**: Ensure Chrome is version 138+
+- **AI not responding**: Verify the local AI model is downloaded and Chrome Prompt API is enabled
+- **Model download fails**: Check [Chrome Prompt API documentation](https://developer.chrome.com/docs/ai/prompt-api) for requirements
 - **Sidebar not opening**: Right-click the extension icon and select "Open side panel"
-- **Selected text not working**: Use the "Test Selected Text" button in Settings
-
-## 💡 Pro Tips
-- The extension works on most websites
-- All AI processing happens locally on your device
-- Each tab maintains its own conversation history
-- Create custom prompts for your specific needs
-- Select text on pages to get context-aware responses
-- The splash screen shows loading progress and helpful information
-
-**Enjoy your AI-powered browsing experience! 🤖✨**

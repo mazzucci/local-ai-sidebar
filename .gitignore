@@ -1,6 +1,5 @@
 # Distribution folders
 dist/
-dist-clean/
 
 # Generated archives
 *.zip
