@@ -154,6 +154,10 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 ### Settings Interface
 ![Settings Interface](screenshots/chrome-store/04-settings-interface.png)
 
+
+### Custom Knowledge - RAG
+![Showcase RAG](chrome-store/04-knowledge-library-rag.png)
+
 ---
 
 **Enjoy using Local AI Sidebar! 🚀**
